@@ -1,4 +1,4 @@
-from src.make_features.subject_verb_object.subject_verb_object import SVOProcessor, EntityCombinationProcessor
+from src.make_features.subject_verb_object.subject_verb_object import SVOProcessor
 from nltk import Tree
 
 class TitleProcessor:
@@ -24,23 +24,14 @@ class Title:
         self.doc = nlp(title)
         self.triples = []
         self.computed_triples = False
-        self.combinations = []
-        self.computed_combinations = False
 
     def subject_object_triples(self, debug=False):
         if self.computed_triples:
             return self.triples
-        print(f"debug at title: {debug}")
         self.triples = SVOProcessor().process(self.doc, debug)
         self.computed_triples = True
         return self.triples
 
-    def entity_combinations(self):
-        if self.computed_combinations:
-            return self.combinations
-        self.combinations = EntityCombinationProcessor().process(self.doc)
-        self.computed_combinations = True
-        return self.combinations
 
 class Page:
     def __init__(self, content_item, nlp):

@@ -6,7 +6,9 @@ import json
 def get_verbs_objects(pages, nlp):
     objects = {}
     verbs = {}
-    for page in pages:
+    len = all_content_items.shape[0]
+    for index, page in enumerate(pages):
+        print(f"{index} of {len}")
         for title in page.titles(nlp):
             for triple in title.subject_object_triples():
                 triple_object = triple.cypher_object()
@@ -17,6 +19,7 @@ def get_verbs_objects(pages, nlp):
                 if triple_verb not in verbs:
                     verbs[triple_verb] = []
                 verbs[triple_verb].append([triple_object, page.base_path(), title.title])
+    print("Found all SVOs, making them unique")
     verbs = find_unique_entries(verbs)
     objects = find_unique_entries(objects)
     return verbs, objects
@@ -36,29 +39,17 @@ def find_unique_entries(verbs_or_objects):
     return unique_entries
 
 if __name__ == "__main__":
-    all_content_items = pd.read_csv("data/processed/preprocessed_content_store_010221.csv", sep="\t", compression="gzip")
-    # all_content_items = pd.read_csv("data/processed/mini_content.csv")
+    all_content_items = pd.read_csv("data/processed/preprocessed_content_store", sep="\t", compression="gzip")
     print("Finished reading from the preprocessed content store!")
     nlp = spacy.load("en_core_web_sm")
     pages = []
-    no_svos = []
     for index, content_item in all_content_items.iterrows():
-        page = Page(content_item, nlp)
-        pages.append(page)
-        titles = page.titles(nlp)
-        if any(titles):
-            if not any(titles[0].subject_object_triples()):
-                no_svos.append(titles[0].title)
-    print("*******************************************")
-    print("*******************************************")
-    print("*******************************************")
-    print("*******************************************")
-    print("*******************************************")
-    print("*******************************************")
-    print("*******************************************")
-    print(no_svos)
+        pages.append(Page(content_item, nlp))
+    print("Loaded pages, starting getting verbs/objects")
     verbs, objects = get_verbs_objects(pages, nlp)
+    print("Saving to file")
     with open('outputs/objects.json', 'w') as json_file:
         json.dump(objects, json_file)
     with open('outputs/verbs.json', 'w') as json_file:
         json.dump(verbs, json_file)
+    print("Done!")
